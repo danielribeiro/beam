@@ -25,7 +25,7 @@ import org.apache.beam.sdk.metrics.Distribution;
 import org.apache.beam.sdk.metrics.Metrics;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
-import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.runners.dataflow.options.DataflowPipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.options.Validation.Required;
 import org.apache.beam.sdk.transforms.Count;
@@ -153,7 +153,7 @@ public class WordCount {
    *
    * <p>Inherits standard configuration options.
    */
-  public interface WordCountOptions extends PipelineOptions {
+  public interface WordCountOptions extends DataflowPipelineOptions {
 
     /**
      * By default, this example reads from a public dataset containing the text of
@@ -174,9 +174,11 @@ public class WordCount {
   }
 
   public static void main(String[] args) {
-    WordCountOptions options = PipelineOptionsFactory.fromArgs(args).withValidation()
-      .as(WordCountOptions.class);
-    Pipeline p = Pipeline.create(options);
+    WordCountOptions options = PipelineOptionsFactory.as(WordCountOptions.class);
+    options.setProject("project");
+    options.setStagingLocation("gs://test_bucket/staging");
+    options.setRunner(DataflowRunner.class);
+    options.setTemplateLocation("gs://test_bucket/staging/templates/WordCountTemplate");
 
     // Concepts #2 and #3: Our pipeline applies the composite CountWords transform, and passes the
     // static FormatAsTextFn() to the ParDo transform.
@@ -185,6 +187,6 @@ public class WordCount {
      .apply(MapElements.via(new FormatAsTextFn()))
      .apply("WriteCounts", TextIO.write().to(options.getOutput()));
 
-    p.run().waitUntilFinish();
+    p.run();
   }
 }
