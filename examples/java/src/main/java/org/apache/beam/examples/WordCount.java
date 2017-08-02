@@ -171,6 +171,12 @@ public class WordCount {
     @Required
     String getOutput();
     void setOutput(String value);
+
+    @Description("The maximum amount of workers for the job. Defaults to 1")
+    @Default.Integer(1)
+    int getMaxWorkerCount();
+
+    void setMaxWorkerCount(int count);
   }
 
   public static void main(String[] args) {
@@ -179,6 +185,7 @@ public class WordCount {
     options.setStagingLocation("gs://test_bucket/staging");
     options.setRunner(DataflowRunner.class);
     options.setTemplateLocation("gs://test_bucket/staging/templates/WordCountTemplate");
+    options.setMaxNumWorkers(options.getMaxWorkerCount());
 
     // Concepts #2 and #3: Our pipeline applies the composite CountWords transform, and passes the
     // static FormatAsTextFn() to the ParDo transform.
